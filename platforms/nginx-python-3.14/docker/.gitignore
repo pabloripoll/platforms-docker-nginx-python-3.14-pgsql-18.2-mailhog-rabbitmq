@@ -1,0 +1,8 @@
+# .gitignore custom settings
+/Dockerfile
+/config/python/conf.d/*
+!/config/python/conf.d/.gitkeep
+/config/nginx/conf.d/*
+!/config/nginx/conf.d/.gitkeep
+/config/supervisor/conf.d/*
+!/config/supervisor/conf.d/.gitkeep
