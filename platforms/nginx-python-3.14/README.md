@@ -4,7 +4,7 @@
 
 - [./back](../../README.md)
 - [Container Specifications](#specifications)
-- [Container Configuration](#container)
+- [Container Configuration](#container-configuration)
 - [Container Management](#management)
 <br>
 
@@ -39,7 +39,7 @@ Before using containers from this repository in any production environment:
 - **Document** any modifications made for your specific use case
 <br><br>
 
-## <a id="container"></a>Container Configuration
+## <a id="container-configuration"></a>Container Configuration
 
 ### Containers Access Modes
 

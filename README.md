@@ -4,7 +4,7 @@
 
 # INFRASTRUCTURE PLATFORM
 
-# NGINX 1.28, PYTHON 3.14, POSTGRES 18.1
+# NGINX 1.28, PYTHON 3.14, POSTGRES 18.2
 
 [![Generic badge](https://img.shields.io/badge/version-1.0-blue.svg)](https://shields.io/)
 [![Open Source? Yes!](https://badgen.net/badge/Open%20Source%20%3F/Yes%21/blue?icon=github)](./)
@@ -26,6 +26,7 @@ Additionally, the platform is designed to support running multiple development v
 ## Content of this page:
 
 - [Requirements](#requirements)
+- [Container Configurations](#container-configuration)
 - [Platform Features](#platform-features)
 - [API Service Container Setting](#api-settings)
 - [Database Service Container Setting](#db-settings)
@@ -49,7 +50,7 @@ Despite Docker’s cross-platform compatibility, for intermediate to advanced so
 - **Docker Compose**: Manages multi-container setups and dependencies.
 - **GNU Make**: Automates build commands and workflows *(otherwise, commands must be executed manually)*.
 
-If you won't use GNU Make, Docker commands will have to be executed from within the `./platform/nginx-python/docker` and `./platform/postgres-18.1/docker` directories, e.g.:
+If you won't use GNU Make, Docker commands will have to be executed from within the `./platform/nginx-python/docker` and `./platform/postgres-18.2/docker` directories, e.g.:
 ```bash
 ./platform/nginx-python-3.14/docker $ sudo docker compose up --build --no-recreate -d
 ```
@@ -112,6 +113,27 @@ This setup gives you security, static file serving, and load balancing from NGIN
 Take into account that each framework will demand its specific configuration from inside container.
 <br><br>
 
+## <a id="container-configuration"></a>Containers Configuration
+
+### Containers Access Modes
+
+- If no application is on `./apirest` directory *(or your custom binded directory name)* once container is up it wont provide a application and therefore NGINX will respond with an error. Copy an start-up example application or create a parking page.
+- Set the required environment values in `./docker/.env` from `./docker/.env.example` if no GNU Make will be applied.
+- Set the required configuration files by coping and updating them depending on your project requirements.
+- Container availability by building the container with `docker-composer.yml` in separated configuration layers
+    - Stand-alone
+        - The container is intended to be published directly and accessed from the host network, typically via `0.0.0.0:<port>`. It does not require a shared Docker network. It is a common setting for local development.
+    - Inside a Custom Network
+        - The container is attached to a custom Docker network and is intended to be accessed through a reverse proxy or other containers on the same network. This is useful for isolating services while still allowing container-to-container communication. It is a recommended setting for remote deployment.
+    - Host-Gateway
+        - The container can reach services running on the host machine using the Docker host gateway mapping. This is useful when the container must access local services on the VPS/host, while public access is still handled through a reverse proxy. It is a recommended setting for remote deployment too.
+    - Public exposure is controlled by the `ports` mapping.
+    - `0.0.0.0:<port>` means externally accessible.
+    - `127.0.0.1:<port>` means local-only access on the host and requires a reverse proxy, e.g. NGINX.
+    - Docker network attachment controls container-to-container communication.
+    - Host-gateway controls container-to-host communication.
+<br><br>
+
 ## <a id="api-settings"></a>API Service Container Setting
 
 The container instance has its dedicated GNU Make and the core Docker directory which contains the scripts and stack assets to build the required platform configuration.
@@ -144,20 +166,20 @@ COMPOSE_PROJECT_GROUP="myproj"
 
 ## <a id="db-settings"></a>Database Service Container Setting
 
-Inside `./platform/pgsql-18.1` there are a dedicated GNU Make file and the main Docker directory with the scripts to build the required platform configuration adapted from [PostgreSQL GitHub repository source](https://github.com/docker-library/postgres/blob/master/17/alpine3.23/docker-entrypoint.sh)
+Inside `./platform/pgsql-18.2` there are a dedicated GNU Make file and the main Docker directory with the scripts to build the required platform configuration adapted from [PostgreSQL GitHub repository source](https://github.com/docker-library/postgres/blob/master/17/alpine3.23/docker-entrypoint.sh)
 
 Content:
 - Linux Alpine version 3.23
-- Postgres 18.1
+- Postgres 18.2
 <br>
 
-> **Note**: There is a `./platform/pgsql-18.1/docker/.env.example` file with the variables required to build the container by `docker-compose.yml` file to create the container. Otherwise, if no GNU Make is available on developer's machine, it is required to create its `.env` manually to build the container.
+> **Note**: There is a `./platform/pgsql-18.2/docker/.env.example` file with the variables required to build the container by `docker-compose.yml` file to create the container. Otherwise, if no GNU Make is available on developer's machine, it is required to create its `.env` manually to build the container.
 
-Database environment file content at `./platform/pgsql-18.1/docker`:
+Database environment file content at `./platform/pgsql-18.2/docker`:
 ```bash
 COMPOSE_PROJECT_LEAD="myproj"
 COMPOSE_PROJECT_CNET="mp-dev"
-COMPOSE_PROJECT_IMGK="alpine3.23-pgsql-18.1"
+COMPOSE_PROJECT_IMGK="alpine3.23-pgsql-18.2"
 COMPOSE_PROJECT_NAME="mp-pgsql-dev"
 COMPOSE_PROJECT_HOST="127.0.0.1"
 COMPOSE_PROJECT_PORT=4500
@@ -196,8 +218,8 @@ APIREST_GIT_HOST=github.org
 APIREST_GIT_BRANCH=develop
 APIREST_DOMAIN=
 
-DATABASE_PLTF=pgsql-18.1
-DATABASE_IMGK=alpine3.23-pgsql-18.1
+DATABASE_PLTF=pgsql-18.2
+DATABASE_IMGK=alpine3.23-pgsql-18.2
 DATABASE_PORT=7500
 DATABASE_CAAS=mp-pgsql-dev
 DATABASE_CAAS_MEM=128M
@@ -329,8 +351,8 @@ This streamlines the workflow for managing containers with mnemonic recipe names
 
 Clone the platforms repository
 ```bash
-$ git clone https://github.com/pabloripoll/docker-platform-nginx-python-3.14-pgsql-18.1
-$ cd docker-platform-nginx-python-3.14-pgsql-18.1
+$ git clone https://github.com/pabloripoll/docker-platform-nginx-python-3.14-pgsql-18.2
+$ cd docker-platform-nginx-python-3.14-pgsql-18.2
 ```
 
 Repository directories structure overview:
@@ -354,7 +376,7 @@ Repository directories structure overview:
 │   │   │   └── Dockerfile
 │   │   │
 │   │   └── Makefile
-│   ├── postgres-18.1
+│   ├── postgres-18.2
 │   │   ├── docker
 │   │   └── Makefile
 │   └── mailhog-1.0
