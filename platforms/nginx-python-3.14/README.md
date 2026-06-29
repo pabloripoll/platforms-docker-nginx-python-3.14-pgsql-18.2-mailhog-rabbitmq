@@ -1,56 +1,88 @@
-<div id="top-header" style="with:100%;height:auto;text-align:right;"></div>
+<div id="top-header" style="with:100%;height:auto;text-align:right;">
+    <img src="./../../resources/docs/images/pr-banner-long.png">
+</div>
 
-# Python 3.14
+# NGINX + PYTHON 3.14
 
-- [./back](../../README.md)
-- [Container Specifications](#specifications)
-- [Container Configuration](#container-configuration)
-- [Container Management](#management)
+- [./main](../../README.md)
+- [Features](#features)
+- [Configuration](#configuration)
+- [Management](#management)
 <br>
 
-## <a id="specifications"></a>Container Specifications
+## <a id="features"></a>Features
 
-### ⚠️ Research & Testing Repository
+![Alpine Linux](https://img.shields.io/badge/Alpine_Linux-%230D597F.svg?style=for-the-badge&logo=alpine-linux&logoColor=white)
+![Debian](https://img.shields.io/badge/debian-red?style=for-the-badge&logo=debian&logoColor=orange&color=darkred)
+![Nginx](https://img.shields.io/badge/nginx-%23009639.svg?style=for-the-badge&logo=nginx&logoColor=white)
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
 
-This repository is intended for **research and testing purposes only**. It is not suitable for production use without significant security review and modifications.
-
-### Security Considerations
-
-To maintain security best practices, we recommend never adding `Dockerfile` to your `.gitignore`. This approach helps prevent:
-
-- **Unauthorized package injection**: Malicious or unvetted packages could be added to the Dockerfile without detection during $ git status checks
-
-- **Supply chain risks**: Dependencies introduced without team visibility or approval
-
-- **Inconsistent deployment**: Preventing teams from being forced to use a single distribution, which can mask environment-specific vulnerabilities
-
-### Recommendations for Production Use
-
-Before using containers from this repository in any production environment:
-
-- **Security audit** all Dockerfile configurations
-
-- **Review all dependencies** and base images
-
-- **Implement image scanning** in your CI/CD pipeline
-
-- **Establish approval workflows** for Dockerfile changes
-
-- **Document** any modifications made for your specific use case
+Content:
+- Linux Alpine 3.23
+- Linux Debian 12 Slim *(Optional Dockerfile)*
+- Python 3.14
 <br><br>
 
-## <a id="container-configuration"></a>Container Configuration
+It can be installed the most known **PYTHON** frameworks:
+
+![FastAPI](https://img.shields.io/badge/FastAPI-009485.svg?style=for-the-badge&logo=fastapi&logoColor=white)
+![Django](https://img.shields.io/badge/Django-%23092E20.svg?style=for-the-badge&logo=django&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-000?style=for-the-badge&logo=flask&logoColor=fff)
+
+- [FastAPI](https://fastapi.tiangolo.com/)
+- [Django](https://www.djangoproject.com/)
+- [Flask](https://flask.palletsprojects.com/en/stable/)
+- Others...
+<br>
+
+Take into account that each framework will demand its specific configuration from inside container.
+<br><br>
+
+## <a id="configuration"></a>Service Configuration
+
+There is a dedicated GNU Make file and the main Docker directory with the required scripts to build the required platform configuration.
+
+This service platform is designed to be managed by a parent `./../../.env` but, as it feeds `./docker/.env` through GNU Make, it can be edited manually.
+
+If no GNU Make is in used, create a copy from the example `./docker/.env.example` into `./docker/.env`.
+
+The service container can be easily manage by the `./docker/docker-compose.yml`.
+
+Require environment variables at `./docker/.env` *(all are customizable)*:
+```bash
+COMPOSE_PROJECT_LEAD="myproj"                           # <- lead abbreviation or acronym as part of related containers naming rule -------------------------> #
+COMPOSE_PROJECT_CNET="mp-dev"                           # <- useful for networking to connect between containers --------------------------------------------> #
+COMPOSE_PROJECT_IMGK="alpine-3.24-nginx-python-3.14"        # <- real main image keys to manage automations for sharing resources -------------------------------> #
+COMPOSE_PROJECT_NAME="mp-apirest-dev"                   # <- container name to build the service - it is important to set the environment in this variable --> #
+COMPOSE_PROJECT_HOST="127.0.0.1"                        # <- machine hostname referrer - not necessary for this project -------------------------------------> #
+COMPOSE_PROJECT_PORT=7501                               # <- local machine port opened for container service ------------------------------------------------> #
+COMPOSE_PROJECT_PATH="../../../api-rest"                # <- path where application is binded from container to local ---------------------------------------> #
+COMPOSE_PROJECT_CPUS="2.00"                             # <- container's maximum CPUs usage to apply by docker-compose - leave it empty for full usage ------> #
+COMPOSE_PROJECT_MEM="128M"                              # <- container's maximum CPUs usage to apply by docker-compose - leave it empty for full usage ------> #
+COMPOSE_PROJECT_SWAP="256M"                             # <- container's maximum RAM usage to apply by docker-compose ---------------------------------------> #
+COMPOSE_PROJECT_USER="osuser"                           # <- container's project directory user -------------------------------------------------------------> #
+COMPOSE_PROJECT_GROUP="osgroup"                         # <- container's project directory group ------------------------------------------------------------> #
+```
+
+<font color="orange"><b>IMPORTANT:</b></font>
+
+Although the project aims to keep platform settings consistent across machines, some runtime requirements can differ between environments *(for example: memory limits or which supervisord services should be active)*.
+
+> Note: Though this platform aim is for REST API services, it also can be used for monolith web applications
 
 ### Containers Access Modes
 
-- If no application is on `./apirest` directory *(or your custom binded directory name)* once container is up it wont provide a application and therefore NGINX will respond with an error. Copy an start-up example application or create a parking page.
+- If no application is on `./api-rest` directory *(or your custom binded directory name)* once container is up it wont provide a application and therefore NGINX will respond with an error. Copy an start-up example application or create a parking page.
 - Set the required environment values in `./docker/.env` from `./docker/.env.example` if no GNU Make will be applied.
 - Set the required configuration files by coping and updating them depending on your project requirements.
 - Container availability by building the container with `docker-composer.yml` in separated configuration layers
     - Stand-alone
         - The container is intended to be published directly and accessed from the host network, typically via `0.0.0.0:<port>`. It does not require a shared Docker network. It is a common setting for local development.
     - Inside a Custom Network
-        - The container is attached to a custom Docker network and is intended to be accessed through a reverse proxy or other containers on the same network. This is useful for isolating services while still allowing container-to-container communication. It is a recommended setting for remote deployment.
+        - The container is attached to a custom Docker network and is intended to be accessed through a reverse proxy or other containers on the same network.
+        - This network setting is useful for isolating services while still allowing container-to-container communication.
+        - It is a strongly recommended setting for remote deployment to avoid exposing the localhost port in used and protect by firewall.
+        - <b>Connect from one container to another inside the custom network, by container name and its own exposed port</b>.
     - Host-Gateway
         - The container can reach services running on the host machine using the Docker host gateway mapping. This is useful when the container must access local services on the VPS/host, while public access is still handled through a reverse proxy. It is a recommended setting for remote deployment too.
     - Public exposure is controlled by the `ports` mapping.
@@ -58,13 +90,15 @@ Before using containers from this repository in any production environment:
     - `127.0.0.1:<port>` means local-only access on the host and requires a reverse proxy, e.g. NGINX.
     - Docker network attachment controls container-to-container communication.
     - Host-gateway controls container-to-host communication.
-<br>
+<br><br>
 
 ### Dockerfile
 
-You might be using this repository with different databases connection. Copy from Alpine or Debian samples and set the correct packages and modules required by commenting them out, and others not required is recommended to be commented. In this way, the container will be built only with the neccessary settings an in less time
+You might be using this repository with different databases connection. Copy from sample and set the correct packages and modules required by commenting them out, and others not required is recommended to be commented. In this way, the container will be built only with the neccessary settings an in less time
 
 - `./docker/Dockerfile.Alpine` -> `./docker/Dockerfile`
+
+Optionally, the platform directory could come with a Dockerfile with Debian version in case of AI preference usage.
 
 ### NGINX
 
@@ -74,23 +108,13 @@ The default example is a server block for a REST API, but it can be use for weba
 
 ### PYTHON
 
-Save default Python settings in `./docker/config/python/conf.d-sample/fpm-pool.conf` if project requires it. Copy them all with the proper configuration required for your project as the following example:
-
-- `./docker/config/nginx/conf.d-sample/ini.conf` -> `./docker/config/nginx/conf.d/ini.conf`
-
-```bash
-# Memory limit
-memory_limit = 128M # must be equal or less than container max memory usage
-```
-
-To automatically run the PHP application, create the Supervisord service that runs the application. You can choose the dev or production version, and set it according to your project requirements
+To automatically run a Python application, create the Supervisord service that runs the application. You can choose the dev or production version, and set it according to your project requirements
 
 - `./docker/config/supervisor/conf.d-sample/python.conf` -> `./docker/config/supervisor/conf.d/python.conf`
 
-Then, update Supervisor service if neccessary
 ```bash
 [program:python]
-command=/var/www/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload #<- execute python command
+command=/var/www/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
 directory=/var/www
 stdout_logfile=/dev/stdout
 stdout_logfile_maxbytes=0
@@ -101,7 +125,26 @@ startretries=0
 ```
 <br>
 
-## <a id="management"></a>Container Management
+To support environment-specific differences, there is a sample supervisor configuration directory:
+`./platform/nginx-python-3.14/docker/config/supervisor/conf.d-sample`
+
+Before building the container you must copy that directory to:
+`./platform/nginx-python-3.14/docker/config/supervisor/conf.d`
+
+Make sure the copied conf.d contains at least the service files needed to run Nginx and Python (for example, supervisor program entries for nginx and python).
+
+```bash
+$ cd ./platform/nginx-python-3.14/docker/config/supervisor
+$ cp -vn conf.d-sample/nginx.conf conf.d-sample/python.conf conf.d/
+'conf.d-sample/nginx.conf' -> 'conf.d/nginx.conf'
+'conf.d-sample/python.conf' -> 'conf.d/python.conf'
+```
+
+This approach lets developers run additional worker processes locally without changing the shared platform settings. If you need to update Nginx, Python, or supervisord configurations on a running container, there are Makefile recipes in `./platform/nginx-python-3.14/Makefile` that can apply changes *(reload or update services)* without destroying and rebuilding the container. Check the Makefile for available targets and usage by executing `$ make help` in its directory.
+<br><br>
+
+
+## <a id="management"></a>Service Management
 
 To manage the container, run the GNU Make recipes
 ```bash
@@ -131,7 +174,10 @@ $ make nginx-update                   updates nginx configuration without the ne
 $ make nginx-default-conf             shows nginx default server block set on the running container
 $ make nginx-default-update           updates nginx default server block without the need of stoping or rebuilding the container
 ```
-<br>
+<br><br>
+
+
+---
 
 ## Contributing
 
@@ -157,3 +203,6 @@ This project is open-sourced under the [MIT license](LICENSE).
 
 - [GO TOP ⮙](#top-header)
 
+<div style="with:100%;height:auto;text-align:right;">
+    <img src="./../../resources/docs/images/pr-banner-long.png">
+</div>

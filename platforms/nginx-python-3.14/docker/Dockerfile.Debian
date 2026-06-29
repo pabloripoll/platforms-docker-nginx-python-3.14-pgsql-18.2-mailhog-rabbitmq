@@ -1,27 +1,16 @@
-FROM python:3.14-alpine
+FROM python:3.14-slim-bookworm
 
 ARG UID
 ARG GID
-ARG USER
-ARG GROUP
 ENV UID=${UID}
 ENV GID=${GID}
+ARG USER
+ARG GROUP
 ENV USER=${USER}
 ENV GROUP=${GROUP}
 
-# Setup unique user and group - needs bash
-RUN apk add --no-cache bash
-
-# Create user and group
-RUN addgroup -S --gid ${GID} ${GROUP} \
-    && adduser -S --uid ${UID} ${USER} -s /bin/sh -G ${GROUP} ${USER} \
-    && apk add --no-cache sudo \
-    && chmod u+s /bin/su \
-    && echo "${USER} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-
-# Install main packages and remove default server definition
-RUN apk add --no-cache \
-  openrc \
+# Install main packages and clean up cache to save space
+RUN apt-get update && apt-get install -y --no-install-recommends \
   curl \
   wget \
   openssl \
@@ -29,18 +18,25 @@ RUN apk add --no-cache \
   zip \
   nano \
   git \
-  #ffmpeg \
+  # ffmpeg \
   musl-dev \
   libva-dev \
   libffi-dev \
-  openssl-dev \
-  # build-essential
-  build-base \
+  libssl-dev \
+  build-essential \
   supervisor \
   # Python
   tzdata \
   python3 \
-  py3-pip
+  python3-pip \
+  python3-venv \
+  && rm -rf /var/lib/apt/lists/*
+
+# Create user and group using native Debian shadow-utils syntax
+RUN groupadd -g ${GID} ${GROUP} \
+    && useradd -u ${UID} -m -d /home/${USER} -s /bin/bash -g ${GROUP} ${USER} \
+    && chmod u+s /bin/su \
+    && echo "${USER} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 # Configure NGINX and remove created its default html directory
 COPY config/nginx/nginx.conf /etc/nginx/nginx.conf
@@ -69,8 +65,8 @@ RUN chown -R ${USER}:${GROUP} /var/www /run /var/lib/nginx /var/log/nginx
 # Switch to use a non-root user from here on
 USER ${USER}
 
-# Container ports
+# NGINX: 80 - PYTHON: 8080
 EXPOSE 80 8080
 
-# Let supervisord start nginx & php-fpm
+# Let supervisord start nginx & python
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]

@@ -2,129 +2,112 @@
     <img src="./resources/docs/images/pr-banner-long.png">
 </div>
 
-# INFRASTRUCTURE PLATFORM
-
-# NGINX 1.28, PYTHON 3.14, POSTGRES 18.2
+# INFRASTRUCTURE PLATFORMS
 
 [![Generic badge](https://img.shields.io/badge/version-1.0-blue.svg)](https://shields.io/)
 [![Open Source? Yes!](https://badgen.net/badge/Open%20Source%20%3F/Yes%21/blue?icon=github)](./)
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
-## Repository Overview
-
-This Infrastructure Platform repository provides a dedicated Python stack for back-end API projects, enabling developers to work within a consistent local development framework that closely mirrors real-world deployment scenarios. Whether your application will run on **AWS EC2**, **Google Cloud GCE**, **Azure** instances, **VPS** or be distributed across **Kubernetes pods**, this structure ensures smooth transitions between environments.
-
-### Modular and Decoupled Design
-
-A key feature of this repository is its modular design: it is intentionally decoupled from its sub-directory `./apirest`, allowing the platform to be maintained independently without impacting the associated subproject. This separation supports dedicated upkeep and flexibility for both the platform and its detached web application.
-
-### Multi-instance Local Development
-
-Additionally, the platform is designed to support running multiple development versions of the `./apirest` simultaneously, simply by adjusting a few environment settings to differentiate each container instance. It is highly configurable to accommodate various infrastructure or machine requirements, allowing developers to easily tailor parameters such as container RAM allocation, port assignments, and other platform settings to best fit their local or deployment environment.
+# NGINX + PYTHON 3.14 & POSTGRE 18+
 <br>
 
-## Content of this page:
+This Infrastructure Platform repository is designed for back-end projects and provides three separate platforms:
 
+## Platforms for Full-Stack Project
+
+- API: [NGINX + PYTHON 3.14](./platforms/nginx-python-3.14/README.md)
+- Database: [POSTGRE 18](./platforms/pgsql-18/README.md)
+- Mail Service: [MAILHOG 1+](./platforms/mailhog-1/README.md)
+- Message Broker: [RABBITMQ 4+](./platforms/rabbitmq-4/README.md)
+<br><br>
+
+
+## Index
+
+- [Repository Objetives](#repository-objetives)
 - [Requirements](#requirements)
-- [Container Configurations](#container-configuration)
-- [Platform Features](#platform-features)
-- [API Service Container Setting](#api-settings)
-- [Database Service Container Setting](#db-settings)
-- [Platforms Containers Build Automation](#platform-automation)
-- [Build and Run Platforms Docker Containers](#building-containers)
-- [GNU Make file recipes](#make-help)
-- [Use this Platform Repository for REST API project](#platform-usage)
+- [Containers Networking](#container-networking)
+- [Requirements](#requirements)
+- [Containers Networking](containers-networking)
+- [Platforms Settings](#platforms-setup)
+- [Platform Start Up](#platforms-startup)
+- [Using this Repository for Custom Project](#platform-usage)
+<br><br>
+
+## <a id="repository-objetives"></a>Repositoy Objetives
+
+### Key principles and goals
+
+This repository provides a consistent framework for local development that mirrors production environments. In production, APIs run on cloud instances (AWS, Azure, GCP) or Kubernetes pods. Meanwhile, the database layer resides on managed services like AWS RDS, Azure Database, or GCP Cloud SQL, utilizing Multi-AZ deployments for high availability and read replicas to scale performance. This structure ensures network connections between application and database tiers remain decoupled.
+
+By leveraging Platform Engineering principles, this project reduces cognitive load for developers. It treats the Internal Developer Platform (IDP) as a product, offering self-service tools and automated workflows. This streamlines the entire lifecycle—from building to monitoring—allowing teams to innovate faster.
+
+- **Self-service:** Provide developers with easy-to-use tools and automated workflows to manage their own infrastructure needs without having to file tickets or rely on other teams.
+
+- **Standardization:** Use standardized tools and environments to ensure consistency, reliability, and security across projects.
+
+- **Reduced cognitive load:** Abstract away underlying complexity so developers can focus on writing code and delivering business value rather than managing infrastructure details.
+
+- **Developer experience:** Build a positive and productive environment for developers, making them feel empowered and less frustrated.
+
+- **Operational efficiency:** Automate repetitive tasks and standardize processes to improve the speed and reliability of software delivery.
+
+### How it works
+
+- Internal Developer Platform (IDP): A dedicated platform built by the platform engineering team that provides a curated set of tools, services, and infrastructure.
+
+- Golden Paths: Predefined, optimized workflows and best practices that developers can follow to accomplish common tasks quickly and easily.
+
+- Treating the platform as a product: Platform engineers treat their IDP like a product, with developers as their customers, to ensure it meets the needs of the organization.
+<br>
+
+### Read more:
+
+- [What is platform engineering? - IBM](https://www.ibm.com/think/topics/platform-engineering)
+- [Understanding platform engineering - Red Hat](https://www.redhat.com/en/topics/platform-engineering)
+- [Platform engineering - Prescriptive Guidance - AWS](https://docs.aws.amazon.com/prescriptive-guidance/latest/aws-caf-platform-perspective/platform-eng.html)
+- [What is an internal developer platform (IDP)? - Google Cloud](https://cloud.google.com/solutions/platform-engineering)
+- [What is platform engineering? - Microsoft](https://learn.microsoft.com/en-us/platform-engineering/what-is-platform-engineering)
+- [What is Platform engineering? - Github](https://github.com/resources/articles/what-is-platform-engineering)
 <br><br>
 
 ## <a id="requirements"></a>Requirements
 
 ![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
+![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)
+![MacOS](https://img.shields.io/badge/MacOS-f0f0f0?logo=apple&logoColor=black&style=for-the-badge)
 ![gnu](https://img.shields.io/badge/gnu-%23A42E2B.svg?style=for-the-badge&logo=gnu&logoColor=white)
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
-![Alpine Linux](https://img.shields.io/badge/Alpine_Linux-%230D597F.svg?style=for-the-badge&logo=alpine-linux&logoColor=white)
-![Nginx](https://img.shields.io/badge/nginx-%23009639.svg?style=for-the-badge&logo=nginx&logoColor=white)
 
 Despite Docker’s cross-platform compatibility, for intermediate to advanced software development on environments other than Windows NT or macOS, automating the platform build and streamlining the process of starting feature development is crucial. This automation enables a more dynamic and efficient software development lifecycle.
 
-- **Docker**: Containerizes applications for consistent environments.
-- **Docker Compose**: Manages multi-container setups and dependencies.
-- **GNU Make**: Automates build commands and workflows *(otherwise, commands must be executed manually)*.
-
-If you won't use GNU Make, Docker commands will have to be executed from within the `./platform/nginx-python/docker` and `./platform/postgres-18.2/docker` directories, e.g.:
-```bash
-./platform/nginx-python-3.14/docker $ sudo docker compose up --build --no-recreate -d
-```
+- Docker
+- Docker Compose
+- GNU Make *(otherwise commands must be executed manually)*
 
 | Dev machine   | Machine's features                                                                            |
 | ------------- | --------------------------------------------------------------------------------------------- |
 | CPU           | Linux *(x64 - x86)* /  MacOS Intel *(x64 - x86)*, or M1                                       |
-| RAM           | *(for this container)*: 1 GB minimum.                                                         |
-| DISK          | 2 GB *(though is much less, it usage could be incremented depending on the project usage)*.   |
+| RAM           | *(for this container)*: 128 MB minimum.                                                       |
+| DISK          | 1 GB *(though is much less, its usage could be incremented depending on the project usage)*.  |
 <br>
 
-## <a id="platform-features"></a>Platform Features
+## <a id="containers-networking"></a>Containers Networking - Access Modes
 
-![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
-![Django](https://img.shields.io/badge/django-%23092E20.svg?style=for-the-badge&logo=django&logoColor=white)
-![DjangoREST](https://img.shields.io/badge/DJANGO-REST-ff1709?style=for-the-badge&logo=django&logoColor=white&color=ff1709&labelColor=gray)
-![Flask](https://img.shields.io/badge/flask-%23000.svg?style=for-the-badge&logo=flask&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
+- If no application is on `./api-rest` directory *(or your custom binded directory name)* once container is up it wont provide a application and therefore NGINX will respond with an error. Copy an start-up example application or create a parking page.
 
-It can be installed the most known JS **back-end / API** frameworks:
+- Each container have a directory to set the required environment values in `./docker/.env` from `./docker/.env.example` if no GNU Make will be applied.
 
-- [Django](https://www.djangoproject.com/)
-- [Flask](https://flask.palletsprojects.com/en/stable/)
-- [FastAPI](https://fastapi.tiangolo.com/)
-- Others...
-<br>
+- Also, each container may need to set the required configuration files by coping and updating them depending on your project requirements.
 
-Since this platform set is already using NGINX, it is still needed an ASGI server to run a REST API. The sample application to test containers is Uvicorn, but you can use Hypercorn, Daphne, or Gunicorn (with ASGI worker) instead. NGINX does not replace the need for an ASGI server—it works together with it.
-
-Several options besides Uvicorn as common ASGI Servers for FastAPI:
-
-1. **Uvicorn**
- - Lightweight, very popular, and production-ready.
-
-2. **Hypercorn**
- - Supports HTTP/2, QUIC, and WebSockets; good alternative.
- - Install: pip install hypercorn
- - Run: hypercorn main:app --bind 0.0.0.0:8080
-
-3. **Daphne**
- - Created for Django Channels, but supports any ASGI app.
- - Install: pip install daphne
- - Run: daphne -b 0.0.0.0 -p 8080 main:app
-
-4. **Gunicorn** *(with Uvicorn or Hypercorn worker)*
- - Gunicorn itself isn’t ASGI, but you can use it with uvicorn.workers.UvicornWorker or hypercorn.workers.HypercornWorker.
- - Install: pip install gunicorn uvicorn
- - Run: gunicorn main:app -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8080
-
-### Why do you still need an ASGI server with NGINX?
-
-NGINX acts as a reverse proxy: It forwards incoming HTTP requests to your application server (the ASGI server). The ASGI server (like Uvicorn) runs your FastAPI code and responds to requests. Typical Production Setup
-
-- NGINX listens on ports 80/443 (HTTP/HTTPS).
-- NGINX forwards requests to the ASGI server (Uvicorn, Hypercorn, Daphne, Gunicorn+worker) running on an internal port (e.g., 8080).
-
-This setup gives you security, static file serving, and load balancing from NGINX, while your Python app is efficiently served by the ASGI server.
-<br>
-
-Take into account that each framework will demand its specific configuration from inside container.
-<br><br>
-
-## <a id="container-configuration"></a>Containers Configuration
-
-### Containers Access Modes
-
-- If no application is on `./apirest` directory *(or your custom binded directory name)* once container is up it wont provide a application and therefore NGINX will respond with an error. Copy an start-up example application or create a parking page.
-- Set the required environment values in `./docker/.env` from `./docker/.env.example` if no GNU Make will be applied.
-- Set the required configuration files by coping and updating them depending on your project requirements.
-- Container availability by building the container with `docker-composer.yml` in separated configuration layers
+- Containers availability by building the container with `docker-composer.yml` in separated configuration layers
     - Stand-alone
         - The container is intended to be published directly and accessed from the host network, typically via `0.0.0.0:<port>`. It does not require a shared Docker network. It is a common setting for local development.
     - Inside a Custom Network
-        - The container is attached to a custom Docker network and is intended to be accessed through a reverse proxy or other containers on the same network. This is useful for isolating services while still allowing container-to-container communication. It is a recommended setting for remote deployment.
+        - The container is attached to a custom Docker network and is intended to be accessed through a reverse proxy or other containers on the same network.
+        - This network setting is useful for isolating services while still allowing container-to-container communication.
+        - It is a strongly recommended setting for remote deployment to avoid exposing the localhost port in used and protect by firewall.
+        - <b>Connect from one container to another inside the custom network, by container name and its own exposed port</b>.
     - Host-Gateway
         - The container can reach services running on the host machine using the Docker host gateway mapping. This is useful when the container must access local services on the VPS/host, while public access is still handled through a reverse proxy. It is a recommended setting for remote deployment too.
     - Public exposure is controlled by the `ports` mapping.
@@ -134,289 +117,201 @@ Take into account that each framework will demand its specific configuration fro
     - Host-gateway controls container-to-host communication.
 <br><br>
 
-## <a id="api-settings"></a>API Service Container Setting
+## <a id="platforms-setup"></a>Configure Platforms
 
-The container instance has its dedicated GNU Make and the core Docker directory which contains the scripts and stack assets to build the required platform configuration.
+Create the root `./.env` file from the [./.env.example](./.env.example) and follow its description to configure the platforms. Each variable has its own explanation.
 
-Also, there is a copy at `./resources/docs/platform/` directory to contain the exact or the alternated scripts, so you can save or backup the different SDLC required configuration *(e.g. Testing, Staging, Production)*.
+Also create the root `./Makefile` file from [./resources/automation/local/Makefile](./resources/automation/local/Makefile) so it will be easy to manage the platforms from one location in the project.
 
-Content:
-- Linux Alpine version 3.23
-- NGINX version 1.28 *(or the latest on Alpine Package Keeper)*
-- Python 3.14 *(or the latest on Alpine Package Keeper)*
-<br>
-
-> **Note**: There is a `./platform/nginx-python/docker/.env.example` file with the variables required to build the container by `docker-compose.yml` file to create the container. Otherwise, if no GNU Make is available on developer's machine, it is required to create its `.env` manually to build the container.
-
-API environment file content at `./platform/nginx-python/docker`:
+Each recipe has its own explanation or execute `make help` command to see them all. This streamlines the workflow for managing containers with mnemonic recipe names, avoiding the effort of remembering and typing each bash command line:
 ```bash
-COMPOSE_PROJECT_LEAD="myproj"
-COMPOSE_PROJECT_CNET="mp-dev"
-COMPOSE_PROJECT_IMGK="alpine3.23-nginx1.28-py3.14"
-COMPOSE_PROJECT_NAME="mp-apirest-dev"
-COMPOSE_PROJECT_HOST="127.0.0.1"
-COMPOSE_PROJECT_PORT=4501
-COMPOSE_PROJECT_PATH="../../../apirest"
-COMPOSE_PROJECT_MEM="512M"
-COMPOSE_PROJECT_SWAP="1G"
-COMPOSE_PROJECT_USER="myproj"
-COMPOSE_PROJECT_GROUP="myproj"
-```
-<br>
-
-## <a id="db-settings"></a>Database Service Container Setting
-
-Inside `./platform/pgsql-18.2` there are a dedicated GNU Make file and the main Docker directory with the scripts to build the required platform configuration adapted from [PostgreSQL GitHub repository source](https://github.com/docker-library/postgres/blob/master/17/alpine3.23/docker-entrypoint.sh)
-
-Content:
-- Linux Alpine version 3.23
-- Postgres 18.2
-<br>
-
-> **Note**: There is a `./platform/pgsql-18.2/docker/.env.example` file with the variables required to build the container by `docker-compose.yml` file to create the container. Otherwise, if no GNU Make is available on developer's machine, it is required to create its `.env` manually to build the container.
-
-Database environment file content at `./platform/pgsql-18.2/docker`:
-```bash
-COMPOSE_PROJECT_LEAD="myproj"
-COMPOSE_PROJECT_CNET="mp-dev"
-COMPOSE_PROJECT_IMGK="alpine3.23-pgsql-18.2"
-COMPOSE_PROJECT_NAME="mp-pgsql-dev"
-COMPOSE_PROJECT_HOST="127.0.0.1"
-COMPOSE_PROJECT_PORT=4500
-COMPOSE_PROJECT_MEM="512M"
-COMPOSE_PROJECT_SWAP="1G"
-POSTGRES_DATABASE=myproj_local
-POSTGRES_USER=myproj
-POSTGRES_PASSWORD="J4YPuJaieJ35gNAOSQQor87s82q2eUS1"
-```
-<br>
-
-## <a id="platform-automation"></a>Platforms Containers Build Automation
-
-Create the root `./.env` file from the [./.env.example](./.env.example) and follow its description to configure the platforms. The end result would be like this:
-```bash
-SUDO=sudo
-DOCKER=sudo docker
-DOCKER_COMPOSE=sudo docker compose
-
-PROJECT_NAME="MY PROJECT"
-PROJECT_LEAD=myproj
-PROJECT_HOST="127.0.0.1"
-PROJECT_CNET=mp-dev
-
-APIREST_PLTF=nginx-python
-APIREST_IMGK=alpine3.21-nginx1.28-py3.14
-APIREST_PORT=7501
-APIREST_BIND="../../../apirest"
-APIREST_CAAS=mp-apirest-dev
-APIREST_CAAS_USER=myproj
-APIREST_CAAS_GROUP=myproj
-APIREST_CAAS_MEM=128M
-APIREST_CAAS_SWAP=512M
-APIREST_GIT_SSH=~/.ssh/id_rsa
-APIREST_GIT_HOST=github.org
-APIREST_GIT_BRANCH=develop
-APIREST_DOMAIN=
-
-DATABASE_PLTF=pgsql-18.2
-DATABASE_IMGK=alpine3.23-pgsql-18.2
-DATABASE_PORT=7500
-DATABASE_CAAS=mp-pgsql-dev
-DATABASE_CAAS_MEM=128M
-DATABASE_CAAS_SWAP=512M
-DATABASE_ROOT="sk5U2phvnjAMRe2wy0aD0ztCQaDusywp"
-DATABASE_NAME=myproj_local
-DATABASE_USER=myproj
-DATABASE_PASS="J4YPuJaieJ35gNAOSQQor87s82q2eUS1"
-DATABASE_PATH="/resources/database/"
-DATABASE_INIT=pgsql-init.sql
-DATABASE_BACK=pgsql-backup.sql
-
-MAILER_PLTF=mailhog-1.0
-MAILER_IMGK=alpine-3.23-mailhog
-MAILER_PORT=7502
-MAILER_CAAS=mp-mailhog-dev
-MAILER_CAAS_MEM=128M
-MAILER_CAAS_SWAP=512M
-MAILER_APP_PORT=7503
+$ make help
 ```
 
-Once this environment file is set, it can be created each container instance's `.env` automatically by using GNU Make:
+Once variables set, each Docker platform container environment variables can be set by GNU Make recipes placed in the root of this repository:
 
-Set up the API container
-```bash
-$ make apirest-set
-```
+- Set up the API container
+  ```bash
+  $ make apirest-set
+  ```
+  **Remember**: *the `./api-rest` directory name is custimizable for binding between the container and local machine.*
 
-Set up the database container
-```bash
-$ make postgres-set
-```
+- Set up the database container
+  ```bash
+  $ make db-set
+  ```
+
+- Set up the mail service container
+  ```bash
+  $ make mailer-set
+  ```
+
+- Set up the message broker service container
+  ```bash
+  $ make broker-set
+  ```
 <br>
 
-Watch the local hostname IP and ports on which Docker containers will be served, even though the API can be accessed through `http://127.0.0.1` or `http://localhost`
-```bash
-$ make local-hostname
-```
-<br>
+## <a id="platforms-startup"></a>Start Up Platforms
 
-## <a id="building-containers"></a>Build and Run Platforms Docker Containers
-
-Now, you can create and start up the API container
+Create and start up the API container
 ```bash
 $ make apirest-create
 ```
 <br>
 
-<span color="orange"><b>IMPORTANT:</b></span> After the container is built and running, there is a Supervisord service that runs the Python application/API. Besides helping to verify that the container was installed successfully, this setup also provides a ready-to-use platform for both development and production environments.
+Testing container visiting localhost with the assigned port, but with no database connection established or failed because of wrong configuration
+<br>
 
+Create and start up the database container
 ```bash
-[program:python]
-command=/var/www/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8080 --reload
-directory=/var/www
-stdout_logfile=/dev/stdout
-stdout_logfile_maxbytes=0
-stderr_logfile=/dev/stderr
-stderr_logfile_maxbytes=0
-autorestart=false
-startretries=0
+$ make db-create
 ```
+<br>
 
-To preview the successful installation on browser, there is a basic home page sample at `./resources/docs/apirest/default-install/`. Copy its content into `./apirest` directory
+Once database service is up and running, status message will show successful connection
+<br>
+
+Create and start up the mail service container
 ```bash
-$ cp -a ./resources/docs/apirest/default-install/. ./apirest
+$ make mailer-create
 ```
+<br>
 
-```
-.
-├── resources
-│   └── docs
-│       └── apirest
-│           └── default-install
-│               ├── static
-│               ├── templates
-│               ├── .gitignore
-│               ├── main.py
-│               ├── requirements.txt
-│               ├── setup_env.py
-│               └── supervisord.log
-```
-
-Then, access into the container to install required Python packages and restart the container
+Create and start up the message broker service container
 ```bash
-$ make apirest-ssh
-/var/www $ python3 setup_env.py
-/var/www $ sudo supervisorctl restart python
+$ make broker-create
 ```
 <br>
 
-Now you can see the Python application running succesfully by visiting http://localhost:{port}/ on browser, but without the database connection established correctly, the sample home page will show a **Postgres** failure message.
+Test mail service container by clicking "Direct Test MAIL" link
 <br>
 
-**REMEMBER** to set the selected port that will serve **Postgres** instance in the `./apirest/main.py` script. The changes will be seen after **Postgres** container is up and running, by refreshing the default page will automatically show the successful connection as **Uvicorn** is on `--reload` mode.
-
-Build and run the database container instance
+Docker information of both cointer up and running
 ```bash
-$ make postgres-create
+$ sudo docker ps
 ```
-<br>
-
-Testing containers visiting localhost with the assigned port, and with a database connected
-<br>
-
-Docker information for both container up and running
-<br>
-
-Also there is a **useful GNU Make recipe** to see the container relevant information. This is important when is developing on dev mode inside the container, when for this example, you would see the framework development stage on Docker port, e.g. `http://172.18.0.2:{port}` ***<- this port can be assigned from project's framework configurations***
 <br>
 
 Despite each container can be stop or restarted, they can be stop and destroy both containers simultaneously to clean up locally from Docker generated cache, without affecting other containers running on the same machine.
 ```bash
-$ make apirest-destroy postgres-destroy
+$ yes | make apirest-destroy db-destroy mailer-destroy broker-destroy
 ```
-<br>
+<br><br>
 
-## <a id="make-help"></a>GNU Make file recipes
+## <a id="platform-usage"></a>Use this Platform Repository for your own REST API repository
 
-The project's main `./Makefile` contains recipes with the commands required to manage each platform's Makefile from the project root.
-
-This streamlines the workflow for managing containers with mnemonic recipe names, avoiding the effort of remembering and typing each bash command line.
-
-<div style="with:100%;height:auto;text-align:center;">
-    <img src="./resources/docs/images/make-help.jpg">
-</div>
-<br>
-
-## <a id="platform-usage"></a>Use this Platform Repository for your REST API Project
-
-Clone the platforms repository
-```bash
-$ git clone https://github.com/pabloripoll/docker-platform-nginx-python-3.14-pgsql-18.2
-$ cd docker-platform-nginx-python-3.14-pgsql-18.2
-```
-
-Repository directories structure overview:
-```
+Repository directories structure overview
+```sh
 .
-├── apirest (Django, Flask, FastAPI, etc.)
-│   ├── venv
-│   ├── main.py
-│   ├── setup_env.py
-│   ├── requirements.txt
-│   └── ...
+├── api-rest                    # detached repository
+│   ├── src
+│   ├── .env
+│   ├── vendor
+│   └── ...etc
 │
-├── platform
-│   ├── nginx-python
+├── platforms                   # remote infrastructure platforms
+│   ├── nginx-python-3.14
 │   │   ├── docker
-│   │   │   │   ├── nginx
-│   │   │   │   └── supervisord
 │   │   │   ├── config
 │   │   │   ├── .env
 │   │   │   ├── docker-compose.yml
 │   │   │   └── Dockerfile
-│   │   │
 │   │   └── Makefile
-│   ├── postgres-18.2
+│   │
+│   ├── postgre-18
 │   │   ├── docker
+│   │   │   ├── .env
+│   │   │   ├── docker-compose.yml
+│   │   │   └── ...etc
 │   │   └── Makefile
-│   └── mailhog-1.0
+│   │
+│   ├── mailhog-1.0
+│   │   ├── docker
+│   │   │   ├── .env
+│   │   │   ├── docker-compose.yml
+│   │   │   └── ...etc
+│   │   └── Makefile
+│   │
+│   └── rabbitmq-4.2
+│       ├── docker
+│       │   ├── .env
+│       │   ├── docker-compose.yml
+│       │   └── ...etc
+│       └── Makefile
+│
+├── resources                   # orientative documentation
+│   ├── automation
+│   │   ├── local
+│   │   │   ├── Makefile        # root ./
+│   │   │   └── Makefile.child  # this goes inside ./api-rest
+│   │   └── remote
+│   ├── databases
+│   │   ├── example-init.sql
+│   │   └── example-backup.sql
+│   └── docs
+│       └── ...
+│
 ├── .env
 ├── Makefile
 └── README.md
 ```
 <br>
 
-Here’s a step-by-step guide for using this Platform repository along with your own API project:
-
-- Remove the existing `./apirest` directory contents from local and from git cache
-- Install your desired repository inside `./apirest`
-- Choose between Git submodule and detached repository approaches
+Set up platforms
+- Copy `.env.example` to `.env` and adjust settings (rest api port, database port, mail service port, container RAM usage, etc.)
 <br>
 
-## Managing the `apirest` Directory: Submodule vs Detached Repository
+### Managing the `api-rest` Directory: Submodule vs Detached Repository
 
-To remove the `./apirest` directory with the default installation content and install your desired repository inside it, there are two alternatives for managing both the platform and apirest repositories independently:
+To remove the `./api-rest` directory with the default installation content and install your desired repository inside it, there are two alternatives for managing both the platform and api-rest repositories independently:
 
-### 1. **GIT Sub-module**
+Here’s a step-by-step guide for using this Platform repository along with your own REST API repository:
+
+- Remove the existing `./api-rest` directory contents from local and from git cache
+- Install your desired repository inside `./api-rest`
+- Choose between Git submodule and detached repository approaches
+
+#### 1. **GIT Detached Repository (Recommended)**
+
+> Git commands can be executed **whether from inside the container or on the local machine**.
+
+- Remove `api-rest` from local and git cache:
+  ```bash
+  $ git rm -r --cached -- "api-rest/*" ":(exclude)api-rest/.gitkeep"
+  $ git clean -fd
+  $ git reset --hard
+  $ git commit -m "maint: api-rest directory and its default installation removed"
+  ```
+
+- Clone the desired repository as a detached repository:
+  ```bash
+  $ git clone git@[vcs]:[account]/[repository].git ./api-rest
+  ```
+
+- The `./api-rest` directory is now an **independent repository**, not tracked as a submodule in your main repo. You can use `git` commands freely inside `api-rest` from anywhere.
+<br>
+
+#### 2. **GIT Sub-module**
 
 > Git commands can be executed **only from inside the container**.
 
-- Remove `apirest` from local and git cache:
+- Remove `api-rest` from local and git cache:
   ```bash
-  $ rm -rfv ./apirest/* ./apirest/.[!.]*$
-  $ git rm -r --cached apirest
-  $ git commit -m "Remove apirest directory and its default installation"
+  $ rm -rfv ./api-rest/* ./api-rest/.[!.]*$
+  $ git rm -r --cached api-rest
+  $ git commit -m "maint: api-rest directory and its default installation removed"
   ```
 
 - Add the desired repository as a submodule:
   ```bash
-  $ git submodule add git@[vcs]:[account]/[repository].git ./apirest
-  $ git commit -m "Add apirest as a git submodule"
+  $ git submodule add git@[vcs]:[account]/[repository].git ./api-rest
+  $ git commit -m "maint: api-rest as a git submodule added"
   ```
 
 - To update submodule contents:
   ```bash
-  $ cd ./apirest
+  $ cd ./api-rest
   $ git pull origin main  # or desired branch
   ```
 
@@ -425,30 +320,6 @@ To remove the `./apirest` directory with the default installation content and in
   $ git submodule update --init --recursive
   ```
 
----
-
-### 2. **GIT Detached Repository (Recommended)**
-
-> Git commands can be executed **whether from inside the container or on the local machine**.
-
-- Remove `apirest` from local and git cache:
-  ```bash
-  $ rm -rfv ./apirest/* ./apirest/.[!.]*
-  $ git rm -r --cached apirest
-  $ git clean -fd
-  $ git reset --hard
-  $ git commit -m "Remove apirest directory and its default installation"
-  ```
-
-- Clone the desired repository as a detached repository:
-  ```bash
-  $ git clone git@[vcs]:[account]/[repository].git ./apirest
-  ```
-
-- The `apirest` directory is now an **independent repository**, not tracked as a submodule in your main repo. You can use `git` commands freely inside `apirest` from anywhere.
-
----
-
 #### **Summary Table**
 
 | Approach         | Repo independence | Where to run git commands | Use case                        |
@@ -456,28 +327,10 @@ To remove the `./apirest` directory with the default installation content and in
 | Submodule        | Tracked by main  | Inside container         | Main repo controls webapp version|
 | Detached (rec.)  | Fully independent| Local or container       | Maximum flexibility              |
 
----
-
-Once the container is up, Supervisor will run the sample API script. See `./platform/nginx-python/docker/config/supervisor/conf.d/python.conf`
-```bash
-[program:python]
-command=/var/www/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8080 --reload
-directory=/var/www
-stdout_logfile=/dev/stdout
-stdout_logfile_maxbytes=0
-stderr_logfile=/dev/stderr
-stderr_logfile_maxbytes=0
-autorestart=false
-startretries=0
-```
-
-> **Note**: If API main script is other, remember to modify this file.
-
-> After switching to either alternative, consider adding `/apirest` to your `.gitignore` in this main platform repository to prevent accidental tracking *(especially for detached repository)*.
+> **Note**: After new project cloned inside `./api-rest`, consider adding `./api-rest/.gitkeep` in it to prevent accidental tracking *(especially for detached repository)*.
+<br><br>
 
 <br>
-
----
 
 ## Contributing
 
@@ -488,57 +341,11 @@ Contributions are very welcome! Please open issues or submit PRs for improvement
 3. Commit your changes (`git commit -am 'feat: Add new feature'`)
 4. Push to the branch (`git push origin feature/YourFeature`)
 5. Create a new Pull Request
-
----
+<br><br>
 
 ## License
 
 This project is open-sourced under the [MIT license](LICENSE).
-<br><br>
-
-## Python Web Framework Comparison
-
-### Feature Comparison
-
-| Feature | FastAPI | Django | Flask |
-|---------|---------|--------|-------|
-| Learning Curve | Easy | Steep | Easy |
-| Built-in Features | Minimal | Extensive | Minimal |
-| Performance | Very Fast | Moderate | Moderate |
-| Async Support | Native | Yes (3.1+) | Limited |
-| API Documentation | Auto (Swagger) | via drf-spectacular | via Flasgger |
-| Flexibility | High | Moderate | Very High |
-| Best For | Modern APIs | Full apps | Custom APIs |
-
-### Additional Considerations
-
-| Feature | FastAPI | Django | Flask |
-|---------|---------|--------|-------|
-| Type Hints | Required (Pydantic) | Optional | Optional |
-| Data Validation | Built-in (Pydantic) | DRF Serializers | Marshmallow |
-| ORM | External (SQLAlchemy) | Built-in (Django ORM) | External (SQLAlchemy) |
-| Migrations | Alembic | Built-in | Flask-Migrate (Alembic) |
-| Admin Panel | No | Built-in | External (Flask-Admin) |
-| Maturity | New (2018) | Very Mature (2005) | Mature (2010) |
-| Community | Growing Fast | Very Large | Large |
-| Package Count | Fewer | Most | Many |
-
-### JWT REST API
-
-**FastAPI** *Recommended*
-- Modern, fast, automatic API documentation
-- Native async support
-- Best developer experience for REST APIs
-
-**Django**
-- Best if you need admin panel and user management UI
-- Batteries-included approach
-- Overkill for simple stateless APIs
-
-**Flask**
-- Maximum control and flexibility
-- Lightweight, build exactly what you need
-- More manual setup required
 
 <!-- FOOTER -->
 <br>

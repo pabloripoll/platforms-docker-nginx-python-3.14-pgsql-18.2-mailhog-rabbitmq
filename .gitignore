@@ -40,18 +40,15 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # Project
-
 /Makefile
-
-/resources/database/*
-!/resources/database/.gitkeep
-/resources/docs/apirest/project/*
-!/resources/docs/apirest/project/.gitkeep
 /resources/automation/remote/*
 !/resources/automation/remote/.gitkeep
-
-/apirest/*
-!/apirest/.gitkeep
+/resources/databases/*
+!/resources/databases/.gitkeep
+/api-grpc/*
+!/api-grpc/.gitkeep
+/api-rest/*
+!/api-rest/.gitkeep
 /application/*
 !/application/.gitkeep
 
